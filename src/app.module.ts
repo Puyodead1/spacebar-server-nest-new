@@ -1,27 +1,24 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { fileLoader, TypedConfigModule } from 'nest-typed-config';
-import { RootConfig } from './config';
+import { Module } from "@nestjs/common";
+import { JwtModule } from "@nestjs/jwt";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { AuthModule } from "./auth/auth.module";
+import { ConfigModule, databaseConfig, securityConfig } from "./config/config.module";
+import { UsersModule } from "./users/users.module";
 
 @Module({
   imports: [
-    TypedConfigModule.forRoot({
-      schema: RootConfig,
-      load: fileLoader({
-        basename: 'config',
-      }),
-      validationOptions: {
-        forbidUnknownValues: false,
-      },
+    ConfigModule,
+    TypeOrmModule.forRoot({
+      ...(databaseConfig as any),
+      autoLoadEntities: true,
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [TypedConfigModule],
-      useFactory: (config: RootConfig) => ({
-        ...(config.database as any),
-        autoLoadEntities: true,
-      }),
-      inject: [RootConfig],
+    JwtModule.register({
+      global: true,
+      secret: securityConfig.jwtSecret,
     }),
+    AuthModule,
+    UsersModule,
+    ConfigModule,
   ],
   controllers: [],
   providers: [],
