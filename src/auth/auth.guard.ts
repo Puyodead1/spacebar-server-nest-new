@@ -39,6 +39,11 @@ export class AuthGuard implements CanActivate {
 
       if (!user) throw new NotFoundException();
 
+      const tvs = Math.floor(user.tokens_valid_since.getTime() / 1000);
+
+      // revoked token
+      if (tvs > payload.iat) throw new UnauthorizedException();
+
       request["user"] = user;
     } catch {
       throw new UnauthorizedException();
